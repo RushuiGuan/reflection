@@ -5,7 +5,7 @@
 		<LangVersion>Latest</LangVersion>
 		<Nullable>enable</Nullable>
 		<Description>A utility library that provides functionalities related to .Net reflection</Description>
-		<PackageProjectUrl>$(RepositoryProjectRoot)/reflection/Albatross.Reflection</PackageProjectUrl>
+		<PackageProjectUrl>$(RepositoryProjectRoot)/Albatross.Reflection</PackageProjectUrl>
 	</PropertyGroup>
 	<ItemGroup>
 		<None Include="..\icon.png">
