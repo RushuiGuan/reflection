@@ -14,9 +14,6 @@ namespace Albatross.Reflection {
 	/// Includes utilities for nullable types, collections, reflection-based property access, and type compatibility checks.
 	/// </summary>
 	public static class TypeExtensions {
-		/// <summary>
-		/// Return the generic argument of Nullable<>
-		/// </summary>
 		public static bool GetNullableValueType(this Type nullableType, [NotNullWhen(true)] out Type? valueType) {
 			if (nullableType.IsGenericType && nullableType.GetGenericTypeDefinition() == typeof(Nullable<>)) {
 				valueType = nullableType.GetGenericArguments()[0];
@@ -26,9 +23,6 @@ namespace Albatross.Reflection {
 			return false;
 		}
 
-		/// <summary>
-		/// Return the generic argument of Task<>
-		/// </summary>
 		public static bool GetTaskResultType(this Type taskType, [NotNullWhen(true)] out Type? resultType) {
 			if (taskType.IsGenericType && taskType.GetGenericTypeDefinition() == typeof(Task<>)) {
 				resultType = taskType.GetGenericArguments()[0];
@@ -38,9 +32,6 @@ namespace Albatross.Reflection {
 			return false;
 		}
 
-		/// <summary>
-		/// Return the generic argument of IEnumerable<> or the element type of an array
-		/// </summary>
 		public static bool GetCollectionElementType(this Type collectionType, [NotNullWhen(true)] out Type? elementType) {
 			elementType = null;
 

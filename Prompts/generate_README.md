@@ -1,4 +1,4 @@
-Generate a professional README.md file for the Albatross.Expression project.
+Generate a professional README.md file for the Albatross.Reflection project.
 
 The README should include:
 - Project title and a short description of what the project does
