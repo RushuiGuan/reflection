@@ -9,6 +9,10 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace Albatross.Reflection {
+	/// <summary>
+	/// Provides extension methods for Type objects to facilitate type inspection, property manipulation, and generic type operations.
+	/// Includes utilities for nullable types, collections, reflection-based property access, and type compatibility checks.
+	/// </summary>
 	public static class TypeExtensions {
 		/// <summary>
 		/// Return the generic argument of Nullable<>
@@ -59,10 +63,20 @@ namespace Albatross.Reflection {
 			return true;
 		}
 
+		/// <summary>
+		/// Extracts the generic type name by removing the backtick and type parameter count.
+		/// </summary>
+		/// <param name="name">The full generic type name (e.g., "List`1")</param>
+		/// <returns>The generic type name without the parameter count (e.g., "List")</returns>
 		public static string GetGenericTypeName(this string name) {
 			return name.Substring(0, name.LastIndexOf('`'));
 		}
 
+		/// <summary>
+		/// Creates a neat class name combining the full type name with the assembly name.
+		/// </summary>
+		/// <param name="type">The type to get the neat name for</param>
+		/// <returns>A string in the format "FullName,AssemblyName"</returns>
 		public static string GetClassNameNeat(this Type type) => $"{type.FullName},{type.Assembly.GetName().Name}";
 
 		/// <summary>
@@ -75,12 +89,24 @@ namespace Albatross.Reflection {
 			return isAnonymousType;
 		}
 
+		/// <summary>
+		/// Determines whether the specified type is a concrete class (not abstract, not interface, not generic type definition).
+		/// </summary>
+		/// <param name="type">The type to check</param>
+		/// <returns>True if the type is a concrete class; otherwise, false</returns>
 		public static bool IsConcreteType(this Type type) => !type.IsAbstract && !type.IsInterface && type.IsClass && !type.IsGenericTypeDefinition;
 
 		/// <summary>
 		/// return true if input parameter is derived from the generic type
 		/// </summary>
 		public static bool IsDerived<T>(this Type type) => typeof(T).IsAssignableFrom(type);
+		
+		/// <summary>
+		/// Determines whether the specified type is derived from or implements the specified base type.
+		/// </summary>
+		/// <param name="type">The type to check</param>
+		/// <param name="baseType">The base type or interface to check against</param>
+		/// <returns>True if the type derives from or implements the base type; otherwise, false</returns>
 		public static bool IsDerived(this Type type, Type baseType) => baseType.IsAssignableFrom(type);
 
 
@@ -138,7 +164,18 @@ namespace Albatross.Reflection {
 		}
 
 
+		/// <summary>
+		/// Determines whether the specified type is a nullable value type (Nullable&lt;T&gt;).
+		/// </summary>
+		/// <param name="type">The type to check</param>
+		/// <returns>True if the type is Nullable&lt;T&gt;; otherwise, false</returns>
 		public static bool IsNullableValueType(this Type type) => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>);
+		
+		/// <summary>
+		/// Determines whether the specified type represents a numeric type.
+		/// </summary>
+		/// <param name="type">The type to check</param>
+		/// <returns>True if the type is a numeric type (byte, int, float, decimal, etc.); otherwise, false</returns>
 		public static bool IsNumericType(this Type type) {
 			switch (Type.GetTypeCode(type)) {
 				case TypeCode.Byte:
@@ -158,18 +195,42 @@ namespace Albatross.Reflection {
 			}
 		}
 
+		/// <summary>
+		/// Gets the type name with assembly name but without version information.
+		/// </summary>
+		/// <param name="type">The type to get the name for</param>
+		/// <returns>A string in the format "FullName, AssemblyName" without version details</returns>
 		public static string GetTypeNameWithoutAssemblyVersion(this Type type) => $"{type.FullName}, {type.Assembly.GetName().Name}";
 
+		/// <summary>
+		/// Gets the file system location of an assembly combined with the specified path.
+		/// </summary>
+		/// <param name="asm">The assembly to get the location for</param>
+		/// <param name="path">The relative path to combine with the assembly location</param>
+		/// <returns>The combined path of the assembly location and the specified path</returns>
+		/// <exception cref="Exception">Thrown when the assembly location cannot be determined</exception>
 		public static string GetAssemblyLocation(this Assembly asm, string path) {
 			string location = System.IO.Path.GetDirectoryName(asm.Location) ?? throw new Exception($"Cannot find the location of assembly {asm.FullName}");
 			return System.IO.Path.Combine(location, path);
 		}
 
+		/// <summary>
+		/// Gets a DirectoryInfo object representing the assembly location combined with the specified path.
+		/// </summary>
+		/// <param name="asm">The assembly to get the location for</param>
+		/// <param name="path">The relative path to combine with the assembly location</param>
+		/// <returns>A DirectoryInfo object for the combined path</returns>
 		public static DirectoryInfo GetAssemblyDirectoryLocation(this Assembly asm, string path) {
 			string location = GetAssemblyLocation(asm, path);
 			return new DirectoryInfo(location);
 		}
 
+		/// <summary>
+		/// Gets a FileInfo object representing the assembly location combined with the specified path.
+		/// </summary>
+		/// <param name="asm">The assembly to get the location for</param>
+		/// <param name="path">The relative path to combine with the assembly location</param>
+		/// <returns>A FileInfo object for the combined path</returns>
 		public static FileInfo GetAssemblyFileLocation(this Assembly asm, string path) {
 			string location = GetAssemblyLocation(asm, path);
 			return new FileInfo(location);
