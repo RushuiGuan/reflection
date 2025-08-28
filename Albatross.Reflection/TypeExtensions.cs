@@ -14,6 +14,12 @@ namespace Albatross.Reflection {
 	/// Includes utilities for nullable types, collections, reflection-based property access, and type compatibility checks.
 	/// </summary>
 	public static class TypeExtensions {
+		/// <summary>
+		/// Determines if the specified type is a nullable value type and extracts the underlying value type.
+		/// </summary>
+		/// <param name="nullableType">The type to check</param>
+		/// <param name="valueType">When this method returns true, contains the underlying value type of the nullable type</param>
+		/// <returns>True if the type is Nullable&lt;T&gt;; otherwise, false</returns>
 		public static bool GetNullableValueType(this Type nullableType, [NotNullWhen(true)] out Type? valueType) {
 			if (nullableType.IsGenericType && nullableType.GetGenericTypeDefinition() == typeof(Nullable<>)) {
 				valueType = nullableType.GetGenericArguments()[0];
@@ -23,6 +29,12 @@ namespace Albatross.Reflection {
 			return false;
 		}
 
+		/// <summary>
+		/// Determines if the specified type is a Task&lt;T&gt; and extracts the result type.
+		/// </summary>
+		/// <param name="taskType">The type to check</param>
+		/// <param name="resultType">When this method returns true, contains the result type of the Task&lt;T&gt;</param>
+		/// <returns>True if the type is Task&lt;T&gt;; otherwise, false</returns>
 		public static bool GetTaskResultType(this Type taskType, [NotNullWhen(true)] out Type? resultType) {
 			if (taskType.IsGenericType && taskType.GetGenericTypeDefinition() == typeof(Task<>)) {
 				resultType = taskType.GetGenericArguments()[0];
@@ -32,6 +44,14 @@ namespace Albatross.Reflection {
 			return false;
 		}
 
+		/// <summary>
+		/// Determines if the specified type is a collection and extracts the element type.
+		/// Supports arrays, generic collections implementing IEnumerable&lt;T&gt;, and non-generic enumerables.
+		/// </summary>
+		/// <param name="collectionType">The type to check</param>
+		/// <param name="elementType">When this method returns true, contains the element type of the collection</param>
+		/// <returns>True if the type is a collection type; otherwise, false</returns>
+		/// <remarks>String types are not considered collections and will return false.</remarks>
 		public static bool GetCollectionElementType(this Type collectionType, [NotNullWhen(true)] out Type? elementType) {
 			elementType = null;
 
@@ -134,6 +154,12 @@ namespace Albatross.Reflection {
 			return genericType != null;
 		}
 
+		/// <summary>
+		/// Type.GetType method returns null if class is not found. This method will throw ArgumentException.
+		/// </summary>
+		/// <param name="className">The fully qualified class name to load</param>
+		/// <returns>The Type object for the specified class name</returns>
+		/// <exception cref="ArgumentException">Thrown when the type is not found</exception>
 		[Obsolete($"Use {nameof(GetRequiredType)} instead")]
 		public static Type GetClass(this string? className) => GetRequiredType(className);
 
