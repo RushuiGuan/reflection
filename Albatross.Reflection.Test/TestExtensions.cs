@@ -64,6 +64,19 @@ namespace Albatross.Reflection.Test {
 					Assert.Equal("class b", x.Value);
 				});
 		}
+		[Theory]
+		[InlineData(null, 1, null, "[1]")]
+		[InlineData(null, null, "name", "name")]
+		[InlineData("test", null, null, "test")]
+		[InlineData("test", 1, null, "test[1]")]
+		[InlineData(null, 1, "name", "[1].name")]
+		[InlineData("test", null, "name", "test.name")]
+		[InlineData("test", 1, "name", "test[1].name")]
+		public void TestBuildPropertyPath(string? path, int? index, string? name, string expected) {
+			var result = Extensions.BuildPropertyPath(path, index, name);
+			Assert.Equal(expected, result);
+		}
+
 		[Fact]
 		public void TestArrayEnumeration() {
 			var dict = new Dictionary<string, object>();
@@ -104,6 +117,26 @@ namespace Albatross.Reflection.Test {
 				}, x => {
 					Assert.Equal("ArrayB[2]", x.Key);
 					Assert.Equal("z", x.Value);
+				});
+		}
+
+		[Fact]
+		public void TestRootArrayEnumeration() {
+			var dict = new Dictionary<string, object>();
+			var array = new string[] { 
+				"a", "b", "c",
+			};
+			Extensions.ToDictionary(array, dict);
+			Assert.Collection(dict,
+				x => {
+					Assert.Equal("[0]", x.Key);
+					Assert.Equal("a", x.Value);
+				}, x => {
+					Assert.Equal("[1]", x.Key);
+					Assert.Equal("b", x.Value);
+				}, x => {
+					Assert.Equal("[2]", x.Key);
+					Assert.Equal("c", x.Value);
 				});
 		}
 	}

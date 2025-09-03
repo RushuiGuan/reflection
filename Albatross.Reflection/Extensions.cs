@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Text;
 
 namespace Albatross.Reflection {
 	/// <summary>
@@ -8,23 +9,20 @@ namespace Albatross.Reflection {
 	/// Supports nested objects, arrays, and collections with hierarchical path-based keys.
 	/// </summary>
 	public static class Extensions {
-		static string BuildPropertyPath(string? path, int? index, string? name) {
-			string key;
-			if (string.IsNullOrEmpty(path)) {
-				return name ?? string.Empty;
-			} else {
-				if (!string.IsNullOrEmpty(name)) {
-					name = $".{name}";
-				}
-				if (index.HasValue) {
-					key = $"{path}[{index}]{name}";
-				} else {
-					key = $"{path}{name}";
-				}
+		internal static string BuildPropertyPath(string? path, int? index, string? name) {
+			var sb = new StringBuilder(path);
+			if (index.HasValue) {
+				sb.Append("[").Append(index.Value).Append("]");
 			}
-			return key;
+			if (!string.IsNullOrEmpty(name)) {
+				if (sb.Length > 0) {
+					sb.Append(".");
+				}
+				sb.Append(name);
+			}
+			return sb.ToString();
 		}
-		
+
 		internal static void RecursivelyAddProperties(object? value, string? path, int? index, Dictionary<string, object> result) {
 			if (value == null) {
 				return;
@@ -49,7 +47,7 @@ namespace Albatross.Reflection {
 				}
 			}
 		}
-		
+
 		/// <summary>
 		/// Flatten an object into a dictionary.  The key is the path to the property.  The value is the value of the property.
 		/// If a property is an array, then the index with square brackets is appended to the path.
@@ -60,7 +58,7 @@ namespace Albatross.Reflection {
 		/// Null values are skipped. Arrays and collections are recursively processed with indexed paths.
 		/// Complex objects have their public instance properties enumerated recursively.
 		/// </remarks>
-		public static void ToDictionary(this object? value,  Dictionary<string, object> result) {
+		public static void ToDictionary(this object? value, Dictionary<string, object> result) {
 			RecursivelyAddProperties(value, null, null, result);
 		}
 	}
