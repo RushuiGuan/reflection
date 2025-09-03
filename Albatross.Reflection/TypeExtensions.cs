@@ -155,15 +155,6 @@ namespace Albatross.Reflection {
 		}
 
 		/// <summary>
-		/// Type.GetType method returns null if class is not found. This method will throw ArgumentException.
-		/// </summary>
-		/// <param name="className">The fully qualified class name to load</param>
-		/// <returns>The Type object for the specified class name</returns>
-		/// <exception cref="ArgumentException">Thrown when the type is not found</exception>
-		[Obsolete($"Use {nameof(GetRequiredType)} instead")]
-		public static Type GetClass(this string? className) => GetRequiredType(className);
-
-		/// <summary>
 		/// Type.GetType method returns null if class is not found.  This method will throw ArgumentException
 		/// </summary>
 		/// <param name="className"></param>

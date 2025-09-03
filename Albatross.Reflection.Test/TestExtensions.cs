@@ -23,15 +23,15 @@ namespace Albatross.Reflection.Test {
 		public List<string> ListA { get; set; } = new List<string>();
 		public string[] ArrayB { get; set; } = Array.Empty<string>();
 	}
-	public class TestEnumerations {
+	public class TestExtensions {
 		[Fact]
 		public void TestSimpleCase() {
 			var dict = new Dictionary<string, object>();
 			int intValue = 1;
 			string textValue = "test";
-			Enumerations.Property(intValue, "a", null, dict);
-			Enumerations.Property(intValue, "a", 1, dict);
-			Enumerations.Property(textValue, "t", null, dict);
+			Extensions.RecursivelyAddProperties(intValue, "a", null, dict);
+			Extensions.RecursivelyAddProperties(intValue, "a", 1, dict);
+			Extensions.RecursivelyAddProperties(textValue, "t", null, dict);
 			Assert.Collection(dict,
 				x => {
 					Assert.Equal("a", x.Key);
@@ -51,7 +51,7 @@ namespace Albatross.Reflection.Test {
 				TextB = "a",
 				IntValue = 100,
 			};
-			Enumerations.Property(a, null, null, dict);
+			Extensions.ToDictionary(a, dict);
 			Assert.Collection(dict,
 				x => {
 					Assert.Equal("TextB", x.Key);
@@ -72,7 +72,7 @@ namespace Albatross.Reflection.Test {
 				ArrayB = new string[] { "x", "y", "z", },
 			};
 			a.B.Array = new int[] { 1, 2, };
-			Enumerations.Property(a, null, null, dict);
+			Extensions.ToDictionary(a, dict);
 			Assert.Collection(dict,
 				x => {
 					Assert.Equal("IntValue", x.Key);

@@ -9,6 +9,9 @@
 		<PackageProjectUrl>$(RepositoryProjectRoot)/Albatross.Reflection</PackageProjectUrl>
 	</PropertyGroup>
 	<ItemGroup>
+		<InternalsVisibleTo Include="Albatross.Reflection.Test" />
+	</ItemGroup>
+	<ItemGroup>
 		<None Include="..\icon.png">
 			<Pack>True</Pack>
 			<PackagePath>\</PackagePath>

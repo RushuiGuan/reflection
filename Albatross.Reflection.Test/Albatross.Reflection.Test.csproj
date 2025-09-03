@@ -4,7 +4,6 @@
 		<OutputType>Library</OutputType>
 		<TargetFramework>net8.0</TargetFramework>
 		<Nullable>enable</Nullable>
-		<AssemblyName>xxx</AssemblyName>
 	</PropertyGroup>
 	<ItemGroup>
 		<None Remove="Embedded\test.txt" />

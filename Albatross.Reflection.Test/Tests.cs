@@ -157,7 +157,7 @@ namespace Albatross.Reflection.Test {
 		}
 
 		[Theory]
-		[InlineData("Albatross.Reflection.Test.Tests, xxx", "Albatross.Reflection.Test.Tests,xxx")]
+		[InlineData("Albatross.Reflection.Test.Tests, Albatross.Reflection.Test", "Albatross.Reflection.Test.Tests,Albatross.Reflection.Test")]
 		public void TestGetClassNameNeat(string className, string expected) {
 			var result = className.GetRequiredType().GetClassNameNeat();
 			Assert.Equal(expected, result);
