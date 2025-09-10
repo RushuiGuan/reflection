@@ -52,7 +52,20 @@ namespace Albatross.Reflection {
 		/// <param name="elementType">When this method returns true, contains the element type of the collection</param>
 		/// <returns>True if the type is a collection type; otherwise, false</returns>
 		/// <remarks>String types are not considered collections and will return false.</remarks>
+		[Obsolete("Use TryGetCollectionElementType instead.")]
 		public static bool GetCollectionElementType(this Type collectionType, [NotNullWhen(true)] out Type? elementType) {
+			return TryGetCollectionElementType(collectionType, out elementType);
+		}
+
+		/// <summary>
+		/// Determines if the specified type is a collection and extracts the element type.
+		/// Supports arrays, generic collections implementing IEnumerable&lt;T&gt;, and non-generic enumerables.
+		/// </summary>
+		/// <param name="collectionType">The type to check</param>
+		/// <param name="elementType">When this method returns true, contains the element type of the collection</param>
+		/// <returns>True if the type is a collection type; otherwise, false</returns>
+		/// <remarks>String types are not considered collections and will return false.</remarks>
+		public static bool TryGetCollectionElementType(this Type collectionType, [NotNullWhen(true)] out Type? elementType) {
 			elementType = null;
 
 			if (collectionType == typeof(string)) {
@@ -64,12 +77,15 @@ namespace Albatross.Reflection {
 				}
 			} else if (collectionType.IsGenericType && collectionType.GetGenericTypeDefinition() == typeof(IEnumerable<>)) {
 				elementType = collectionType.GetGenericArguments().First();
-			} else if (collectionType.GetInterfaces().Any(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IEnumerable<>))) {
-				elementType = collectionType.GetGenericArguments().First();
-			} else if (typeof(IEnumerable).IsAssignableFrom(collectionType)) {
-				elementType = typeof(object);
 			} else {
-				return false;
+				var enumerableInterface = collectionType.GetInterfaces().FirstOrDefault(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IEnumerable<>));
+				if (enumerableInterface != null) {
+					elementType = enumerableInterface.GetGenericArguments().First();
+				} else if (typeof(IEnumerable).IsAssignableFrom(collectionType)) {
+					elementType = typeof(object);
+				} else {
+					return false;
+				}
 			}
 			return true;
 		}

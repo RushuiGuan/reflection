@@ -49,17 +49,29 @@ namespace Albatross.Reflection.Test {
 			Assert.Null(args);
 		}
 
+
+		static IEnumerable<int> GetEnumerable() {
+			yield return 1;
+		}
+
+		[Fact]
+		public void TestGetCollectionElementType_WithARunTimeType() {
+			Type type = GetEnumerable().GetType();
+			Assert.True(type.TryGetCollectionElementType(out Type? args));
+			Assert.Same(typeof(int), args);
+		}
+
 		[Fact]
 		public void TestGetCollectionElementType_True() {
 			Type type = typeof(IEnumerable<string>);
-			Assert.True(type.GetCollectionElementType(out Type? args));
+			Assert.True(type.TryGetCollectionElementType(out Type? args));
 			Assert.Same(typeof(string), args);
 		}
 
 		[Fact]
 		public void TestGetCollectionElementType_False() {
 			Type type = typeof(string);
-			Assert.False(type.GetCollectionElementType(out Type? args));
+			Assert.False(type.TryGetCollectionElementType(out Type? args));
 			Assert.Null(args);
 		}
 
