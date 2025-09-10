@@ -6,8 +6,8 @@
 
 [DefaultNamespaceAttribute](./albatross/reflection/defaultnamespaceattribute)
 
-[Enumerations](./albatross/reflection/enumerations)
-
 [ExpressionExtensions](./albatross/reflection/expressionextensions)
+
+[Extensions](./albatross/reflection/extensions)
 
 [TypeExtensions](./albatross/reflection/typeextensions)

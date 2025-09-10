@@ -62,11 +62,43 @@ True if the type is Task&lt;T&gt;; otherwise, false
 
 ### **GetCollectionElementType(Type, Type&)**
 
+#### Caution
+
+Use TryGetCollectionElementType instead.
+
+---
+
 Determines if the specified type is a collection and extracts the element type.
  Supports arrays, generic collections implementing IEnumerable&lt;T&gt;, and non-generic enumerables.
 
 ```csharp
 public static bool GetCollectionElementType(Type collectionType, Type& elementType)
+```
+
+#### Parameters
+
+`collectionType` [Type](https://docs.microsoft.com/en-us/dotnet/api/system.type)<br>
+The type to check
+
+`elementType` [Type&](https://docs.microsoft.com/en-us/dotnet/api/system.type&)<br>
+When this method returns true, contains the element type of the collection
+
+#### Returns
+
+[Boolean](https://docs.microsoft.com/en-us/dotnet/api/system.boolean)<br>
+True if the type is a collection type; otherwise, false
+
+**Remarks:**
+
+String types are not considered collections and will return false.
+
+### **TryGetCollectionElementType(Type, Type&)**
+
+Determines if the specified type is a collection and extracts the element type.
+ Supports arrays, generic collections implementing IEnumerable&lt;T&gt;, and non-generic enumerables.
+
+```csharp
+public static bool TryGetCollectionElementType(Type collectionType, Type& elementType)
 ```
 
 #### Parameters
@@ -228,35 +260,6 @@ If the class extends\implements the generic type\interface, its type will be set
 
 [Boolean](https://docs.microsoft.com/en-us/dotnet/api/system.boolean)<br>
 Return true if the class implements the generic interface
-
-### **GetClass(String)**
-
-#### Caution
-
-Use GetRequiredType instead
-
----
-
-Type.GetType method returns null if class is not found. This method will throw ArgumentException.
-
-```csharp
-public static Type GetClass(string className)
-```
-
-#### Parameters
-
-`className` [String](https://docs.microsoft.com/en-us/dotnet/api/system.string)<br>
-The fully qualified class name to load
-
-#### Returns
-
-[Type](https://docs.microsoft.com/en-us/dotnet/api/system.type)<br>
-The Type object for the specified class name
-
-#### Exceptions
-
-[ArgumentException](https://docs.microsoft.com/en-us/dotnet/api/system.argumentexception)<br>
-Thrown when the type is not found
 
 ### **GetRequiredType(String)**
 
