@@ -18,6 +18,8 @@ A powerful .NET Standard 2.1 utility library that simplifies reflection operatio
 ## Prerequisites
 
 - **.NET Standard 2.1** or higher
+- **.NET SDK 6.0** or later (for building from source)
+- **C# 9.0** or later (supports nullable reference types)
 
 ## Installation
 
@@ -54,10 +56,10 @@ public class Person
 var nameProperty = ExpressionExtensions.GetPropertyInfo<Person>(p => p.Name);
 Console.WriteLine(nameProperty.Name); // Output: Name
 
-// Set value only if not null
-var person = new Person();
-person.SetValueIfNotNull(p => p.Age, 25);
-person.SetTextIfNotEmpty(p => p.Name, "John Doe");
+// Get property value using reflection utilities
+var person = new Person { Name = "John", Age = 25 };
+var nameValue = typeof(Person).GetPropertyValue(person, "Name", false);
+Console.WriteLine(nameValue); // Output: John
 
 // Create predicate expressions
 var predicate = ExpressionExtensions.GetPredicate<Person>("Name", "John");
@@ -112,7 +114,7 @@ var person = new Person
 };
 
 var properties = new Dictionary<string, object>();
-Enumerations.Property(person, null, null, properties);
+person.ToDictionary(properties);
 
 // Results in flattened structure:
 // "Name" => "John"
@@ -128,13 +130,13 @@ Enumerations.Property(person, null, null, properties);
 │   ├── AssemblyExtensions.cs       # Assembly type discovery utilities
 │   ├── ExpressionExtensions.cs     # Expression-based property operations
 │   ├── TypeExtensions.cs           # Type inspection and manipulation
-│   ├── Enumerations.cs             # Object property enumeration
+│   ├── Extensions.cs               # Object property enumeration
 │   ├── DefaultNamespaceAttribute.cs # Custom attribute for resources
 │   └── README.md                   # Package documentation
 ├── Albatross.Reflection.Test/      # Unit tests
 │   ├── ExpressionTest.cs           # Expression extension tests
 │   ├── Tests.cs                    # Core functionality tests
-│   ├── TestEnumerations.cs         # Property enumeration tests
+│   ├── TestExtensions.cs           # Property enumeration tests
 │   └── ...                        # Additional test files
 ├── docs/                          # Generated API documentation
 ├── README.md                      # This file
@@ -157,11 +159,6 @@ Enumerations.Property(person, null, null, properties);
 3. **Build the solution**
    ```bash
    dotnet build
-   ```
-
-4. **Run the application** (if applicable)
-   ```bash
-   dotnet run --project Albatross.Reflection
    ```
 
 ## Running Tests
