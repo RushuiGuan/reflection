@@ -90,9 +90,23 @@ namespace Albatross.Reflection {
 			return true;
 		}
 
+		/// <summary>
+		/// Determines whether the specified type represents a collection type.
+		/// </summary>
+		/// <param name="type">The type to check</param>
+		/// <returns>True if the type implements IEnumerable and is not a string; otherwise, false</returns>
+		/// <remarks>String types are not considered collections and will return false.</remarks>
 		public static bool IsCollectionType(this Type type)
 			=> type != typeof(string) && typeof(System.Collections.IEnumerable).IsAssignableFrom(type);
 
+		/// <summary>
+		/// Determines if the specified type is a generic collection and extracts the element type.
+		/// Supports arrays and generic collections implementing IEnumerable&lt;T&gt;.
+		/// </summary>
+		/// <param name="collectionType">The type to check</param>
+		/// <param name="elementType">When this method returns true, contains the element type of the collection</param>
+		/// <returns>True if the type is a generic collection type; otherwise, false</returns>
+		/// <remarks>String types and non-generic enumerables are not supported and will return false.</remarks>
 		public static bool TryGetGenericCollectionElementType(this Type collectionType, [NotNullWhen(true)] out Type? elementType) {
 			elementType = null;
 
@@ -149,8 +163,11 @@ namespace Albatross.Reflection {
 		public static bool IsConcreteType(this Type type) => !type.IsAbstract && !type.IsInterface && type.IsClass && !type.IsGenericTypeDefinition;
 
 		/// <summary>
-		/// return true if input parameter is derived from the generic type
+		/// Determines whether the specified type is derived from or implements the generic type T.
 		/// </summary>
+		/// <typeparam name="T">The base type or interface to check against</typeparam>
+		/// <param name="type">The type to check</param>
+		/// <returns>True if the type derives from or implements type T; otherwise, false</returns>
 		public static bool IsDerived<T>(this Type type) => typeof(T).IsAssignableFrom(type);
 
 		/// <summary>
@@ -196,10 +213,12 @@ namespace Albatross.Reflection {
 		}
 
 		/// <summary>
-		/// Type.GetType method returns null if class is not found.  This method will throw ArgumentException
+		/// Gets a Type by its name, throwing an ArgumentException if the type is not found.
+		/// Unlike Type.GetType, this method provides better error handling for missing types.
 		/// </summary>
-		/// <param name="className"></param>
-		/// <returns></returns>
+		/// <param name="className">The fully qualified name of the type to retrieve</param>
+		/// <returns>The Type object for the specified class name</returns>
+		/// <exception cref="ArgumentException">Thrown when the class name is null, empty, or the type cannot be found</exception>
 		public static Type GetRequiredType(this string? className) {
 			if (string.IsNullOrEmpty(className)) {
 				throw new ArgumentException("Type not found: empty class name");
@@ -286,9 +305,15 @@ namespace Albatross.Reflection {
 		}
 
 		/// <summary>
-		/// return the property value of an object using reflection.  Property name can be delimited using . to allow retrieval of nested object property value
+		/// Gets the value of a property from an object using reflection.
+		/// Supports nested property access using dot notation (e.g., "Property.SubProperty").
 		/// </summary>
-		/// <exception cref="ArgumentException"></exception>
+		/// <param name="type">The type of the object</param>
+		/// <param name="data">The object to get the property value from</param>
+		/// <param name="name">The property name, which can include nested properties separated by dots</param>
+		/// <param name="ignoreCase">Whether to ignore case when matching property names</param>
+		/// <returns>The value of the property, or null if the object or any nested property is null</returns>
+		/// <exception cref="ArgumentException">Thrown when the specified property is not found</exception>
 		public static object? GetPropertyValue(this Type type, object? data, string name, bool ignoreCase) {
 			if (data == null) { return null; }
 			var bindingFlag = BindingFlags.Instance | BindingFlags.Public | BindingFlags.GetProperty;
@@ -314,9 +339,14 @@ namespace Albatross.Reflection {
 		}
 
 		/// <summary>
-		/// return the property type of an object property using reflection.  Property name can be nested using period (.) as delimiter
+		/// Gets the Type of a property using reflection.
+		/// Supports nested property access using dot notation (e.g., "Property.SubProperty").
 		/// </summary>
-		/// <exception cref="ArgumentException"></exception>
+		/// <param name="type">The type containing the property</param>
+		/// <param name="name">The property name, which can include nested properties separated by dots</param>
+		/// <param name="ignoreCase">Whether to ignore case when matching property names</param>
+		/// <returns>The Type of the specified property</returns>
+		/// <exception cref="ArgumentException">Thrown when the specified property is not found</exception>
 		public static Type GetPropertyType(this Type type, string name, bool ignoreCase) {
 			var bindingFlag = BindingFlags.Instance | BindingFlags.Public | BindingFlags.GetProperty | BindingFlags.SetProperty;
 			if (ignoreCase) {
@@ -335,9 +365,16 @@ namespace Albatross.Reflection {
 		}
 
 		/// <summary>
-		/// set the property value of an object using reflection.  Property name can be delimited using . to allow setting of nested object property value
+		/// Sets the value of a property on an object using reflection.
+		/// Supports nested property access using dot notation (e.g., "Property.SubProperty").
 		/// </summary>
-		/// <exception cref="ArgumentException"></exception>
+		/// <param name="type">The type of the object</param>
+		/// <param name="data">The object to set the property value on</param>
+		/// <param name="propertyName">The property name, which can include nested properties separated by dots</param>
+		/// <param name="value">The value to set</param>
+		/// <param name="ignoreCase">Whether to ignore case when matching property names</param>
+		/// <exception cref="ArgumentException">Thrown when the specified property is not found or doesn't have appropriate getter/setter</exception>
+		/// <exception cref="InvalidOperationException">Thrown when attempting to set a property on a null object</exception>
 		public static void SetPropertyValue(this Type type, object? data, string propertyName, object? value, bool ignoreCase) {
 			if (data == null) {
 				throw new InvalidOperationException($"cannot set property {propertyName} of a null value");
