@@ -13,7 +13,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		LICENSE = LICENSE
 		.version = .version
 		docs.ps1 = docs.ps1
-		import-script.ps1 = import-script.ps1
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Albatross.Reflection", "Albatross.Reflection\Albatross.Reflection.csproj", "{1C4DA542-CE97-4DA7-8A69-6A8835F24DD8}"

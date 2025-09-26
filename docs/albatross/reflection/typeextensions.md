@@ -94,6 +94,12 @@ String types are not considered collections and will return false.
 
 ### **TryGetCollectionElementType(Type, Type&)**
 
+#### Caution
+
+Use TryGetGenericCollectionElementType instead.
+
+---
+
 Determines if the specified type is a collection and extracts the element type.
  Supports arrays, generic collections implementing IEnumerable&lt;T&gt;, and non-generic enumerables.
 
@@ -117,6 +123,36 @@ True if the type is a collection type; otherwise, false
 **Remarks:**
 
 String types are not considered collections and will return false.
+
+### **IsCollectionType(Type)**
+
+```csharp
+public static bool IsCollectionType(Type type)
+```
+
+#### Parameters
+
+`type` [Type](https://docs.microsoft.com/en-us/dotnet/api/system.type)<br>
+
+#### Returns
+
+[Boolean](https://docs.microsoft.com/en-us/dotnet/api/system.boolean)<br>
+
+### **TryGetGenericCollectionElementType(Type, Type&)**
+
+```csharp
+public static bool TryGetGenericCollectionElementType(Type collectionType, Type& elementType)
+```
+
+#### Parameters
+
+`collectionType` [Type](https://docs.microsoft.com/en-us/dotnet/api/system.type)<br>
+
+`elementType` [Type&](https://docs.microsoft.com/en-us/dotnet/api/system.type&)<br>
+
+#### Returns
+
+[Boolean](https://docs.microsoft.com/en-us/dotnet/api/system.boolean)<br>
 
 ### **GetGenericTypeName(String)**
 
