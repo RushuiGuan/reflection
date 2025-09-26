@@ -65,17 +65,17 @@ namespace Albatross.Reflection {
 		/// <param name="elementType">When this method returns true, contains the element type of the collection</param>
 		/// <returns>True if the type is a collection type; otherwise, false</returns>
 		/// <remarks>String types are not considered collections and will return false.</remarks>
+		[Obsolete("Use TryGetGenericCollectionElementType instead.")]
 		public static bool TryGetCollectionElementType(this Type collectionType, [NotNullWhen(true)] out Type? elementType) {
 			elementType = null;
 
 			if (collectionType == typeof(string)) {
 				return false;
 			} else if (collectionType == typeof(Array) || collectionType.IsArray) {
-				elementType = collectionType.GetElementType()!;
-				if (elementType == null) {
-					elementType = typeof(object);
-				}
+				// this code path is created for performance reason.  Type.IsArray is faster than checking all interfaces
+				elementType = collectionType.GetElementType() ?? typeof(object);
 			} else if (collectionType.IsGenericType && collectionType.GetGenericTypeDefinition() == typeof(IEnumerable<>)) {
+				// this code path is already created for performance reason.
 				elementType = collectionType.GetGenericArguments().First();
 			} else {
 				var enumerableInterface = collectionType.GetInterfaces().FirstOrDefault(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IEnumerable<>));
@@ -88,6 +88,31 @@ namespace Albatross.Reflection {
 				}
 			}
 			return true;
+		}
+
+		public static bool IsCollectionType(this Type type)
+			=> type != typeof(string) && typeof(System.Collections.IEnumerable).IsAssignableFrom(type);
+
+		public static bool TryGetGenericCollectionElementType(this Type collectionType, [NotNullWhen(true)] out Type? elementType) {
+			elementType = null;
+
+			if (collectionType == typeof(string)) {
+				return false;
+			}
+			if (collectionType.IsArray) {
+				elementType = collectionType.GetElementType() ?? typeof(object);
+				return true;
+			}
+			if (collectionType.IsGenericType && collectionType.GetGenericTypeDefinition() == typeof(IEnumerable<>)) {
+				elementType = collectionType.GetGenericArguments()[0];
+				return true;
+			}
+			var enumerableInterface = collectionType.GetInterfaces().FirstOrDefault(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IEnumerable<>));
+			if (enumerableInterface != null) {
+				elementType = enumerableInterface.GetGenericArguments()[0];
+				return true;
+			}
+			return false;
 		}
 
 		/// <summary>
@@ -127,7 +152,7 @@ namespace Albatross.Reflection {
 		/// return true if input parameter is derived from the generic type
 		/// </summary>
 		public static bool IsDerived<T>(this Type type) => typeof(T).IsAssignableFrom(type);
-		
+
 		/// <summary>
 		/// Determines whether the specified type is derived from or implements the specified base type.
 		/// </summary>
@@ -194,7 +219,7 @@ namespace Albatross.Reflection {
 		/// <param name="type">The type to check</param>
 		/// <returns>True if the type is Nullable&lt;T&gt;; otherwise, false</returns>
 		public static bool IsNullableValueType(this Type type) => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>);
-		
+
 		/// <summary>
 		/// Determines whether the specified type represents a numeric type.
 		/// </summary>

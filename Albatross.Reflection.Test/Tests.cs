@@ -50,30 +50,9 @@ namespace Albatross.Reflection.Test {
 		}
 
 
-		static IEnumerable<int> GetEnumerable() {
-			yield return 1;
-		}
+		
 
-		[Fact]
-		public void TestGetCollectionElementType_WithARunTimeType() {
-			Type type = GetEnumerable().GetType();
-			Assert.True(type.TryGetCollectionElementType(out Type? args));
-			Assert.Same(typeof(int), args);
-		}
-
-		[Fact]
-		public void TestGetCollectionElementType_True() {
-			Type type = typeof(IEnumerable<string>);
-			Assert.True(type.TryGetCollectionElementType(out Type? args));
-			Assert.Same(typeof(string), args);
-		}
-
-		[Fact]
-		public void TestGetCollectionElementType_False() {
-			Type type = typeof(string);
-			Assert.False(type.TryGetCollectionElementType(out Type? args));
-			Assert.Null(args);
-		}
+		
 
 		[Fact]
 		public void TestIsAnonymousType_True() {
@@ -137,6 +116,7 @@ namespace Albatross.Reflection.Test {
 			Assert.Equal("123", text);
 		}
 
+		// this test will fail in mac os because of the case sensitivity of the file system
 		[Fact]
 		public void TestAssemblyLocation() {
 			string location = this.GetType().Assembly.Location;
