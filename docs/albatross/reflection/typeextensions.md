@@ -126,6 +126,8 @@ String types are not considered collections and will return false.
 
 ### **IsCollectionType(Type)**
 
+Determines whether the specified type represents a collection type.
+
 ```csharp
 public static bool IsCollectionType(Type type)
 ```
@@ -133,12 +135,21 @@ public static bool IsCollectionType(Type type)
 #### Parameters
 
 `type` [Type](https://docs.microsoft.com/en-us/dotnet/api/system.type)<br>
+The type to check
 
 #### Returns
 
 [Boolean](https://docs.microsoft.com/en-us/dotnet/api/system.boolean)<br>
+True if the type implements IEnumerable and is not a string; otherwise, false
+
+**Remarks:**
+
+String types are not considered collections and will return false.
 
 ### **TryGetGenericCollectionElementType(Type, Type&)**
+
+Determines if the specified type is a generic collection and extracts the element type.
+ Supports arrays and generic collections implementing IEnumerable&lt;T&gt;.
 
 ```csharp
 public static bool TryGetGenericCollectionElementType(Type collectionType, Type& elementType)
@@ -147,12 +158,19 @@ public static bool TryGetGenericCollectionElementType(Type collectionType, Type&
 #### Parameters
 
 `collectionType` [Type](https://docs.microsoft.com/en-us/dotnet/api/system.type)<br>
+The type to check
 
 `elementType` [Type&](https://docs.microsoft.com/en-us/dotnet/api/system.type&)<br>
+When this method returns true, contains the element type of the collection
 
 #### Returns
 
 [Boolean](https://docs.microsoft.com/en-us/dotnet/api/system.boolean)<br>
+True if the type is a generic collection type; otherwise, false
+
+**Remarks:**
+
+String types and non-generic enumerables are not supported and will return false.
 
 ### **GetGenericTypeName(String)**
 
@@ -226,7 +244,7 @@ True if the type is a concrete class; otherwise, false
 
 ### **IsDerived&lt;T&gt;(Type)**
 
-return true if input parameter is derived from the generic type
+Determines whether the specified type is derived from or implements the generic type T.
 
 ```csharp
 public static bool IsDerived<T>(Type type)
@@ -235,14 +253,17 @@ public static bool IsDerived<T>(Type type)
 #### Type Parameters
 
 `T`<br>
+The base type or interface to check against
 
 #### Parameters
 
 `type` [Type](https://docs.microsoft.com/en-us/dotnet/api/system.type)<br>
+The type to check
 
 #### Returns
 
 [Boolean](https://docs.microsoft.com/en-us/dotnet/api/system.boolean)<br>
+True if the type derives from or implements type T; otherwise, false
 
 ### **IsDerived(Type, Type)**
 
@@ -299,7 +320,8 @@ Return true if the class implements the generic interface
 
 ### **GetRequiredType(String)**
 
-Type.GetType method returns null if class is not found. This method will throw ArgumentException
+Gets a Type by its name, throwing an ArgumentException if the type is not found.
+ Unlike Type.GetType, this method provides better error handling for missing types.
 
 ```csharp
 public static Type GetRequiredType(string className)
@@ -308,10 +330,17 @@ public static Type GetRequiredType(string className)
 #### Parameters
 
 `className` [String](https://docs.microsoft.com/en-us/dotnet/api/system.string)<br>
+The fully qualified name of the type to retrieve
 
 #### Returns
 
 [Type](https://docs.microsoft.com/en-us/dotnet/api/system.type)<br>
+The Type object for the specified class name
+
+#### Exceptions
+
+[ArgumentException](https://docs.microsoft.com/en-us/dotnet/api/system.argumentexception)<br>
+Thrown when the class name is null, empty, or the type cannot be found
 
 ### **IsNullableValueType(Type)**
 
@@ -437,7 +466,9 @@ A FileInfo object for the combined path
 
 ### **GetPropertyValue(Type, Object, String, Boolean)**
 
-return the property value of an object using reflection. Property name can be delimited using . to allow retrieval of nested object property value
+Gets the value of a property from an object using reflection.
+ Supports nested property access using dot notation (e.g., "Property.SubProperty").
+ Supports indexed property access using square bracket notation (e.g., "Property[index]" or "Property[key]").
 
 ```csharp
 public static object GetPropertyValue(Type type, object data, string name, bool ignoreCase)
@@ -446,24 +477,31 @@ public static object GetPropertyValue(Type type, object data, string name, bool 
 #### Parameters
 
 `type` [Type](https://docs.microsoft.com/en-us/dotnet/api/system.type)<br>
+The type of the object
 
 `data` [Object](https://docs.microsoft.com/en-us/dotnet/api/system.object)<br>
+The object to get the property value from
 
 `name` [String](https://docs.microsoft.com/en-us/dotnet/api/system.string)<br>
+The property name, which can include nested properties separated by dots and indexed properties with square brackets
 
 `ignoreCase` [Boolean](https://docs.microsoft.com/en-us/dotnet/api/system.boolean)<br>
+Whether to ignore case when matching property names
 
 #### Returns
 
 [Object](https://docs.microsoft.com/en-us/dotnet/api/system.object)<br>
+The value of the property, or null if the object or any nested property is null
 
 #### Exceptions
 
 [ArgumentException](https://docs.microsoft.com/en-us/dotnet/api/system.argumentexception)<br>
+Thrown when the specified property is not found
 
 ### **GetPropertyType(Type, String, Boolean)**
 
-return the property type of an object property using reflection. Property name can be nested using period (.) as delimiter
+Gets the Type of a property using reflection.
+ Supports nested property access using dot notation (e.g., "Property.SubProperty").
 
 ```csharp
 public static Type GetPropertyType(Type type, string name, bool ignoreCase)
@@ -472,22 +510,65 @@ public static Type GetPropertyType(Type type, string name, bool ignoreCase)
 #### Parameters
 
 `type` [Type](https://docs.microsoft.com/en-us/dotnet/api/system.type)<br>
+The type containing the property
 
 `name` [String](https://docs.microsoft.com/en-us/dotnet/api/system.string)<br>
+The property name, which can include nested properties separated by dots
 
 `ignoreCase` [Boolean](https://docs.microsoft.com/en-us/dotnet/api/system.boolean)<br>
+Whether to ignore case when matching property names
 
 #### Returns
 
 [Type](https://docs.microsoft.com/en-us/dotnet/api/system.type)<br>
+The Type of the specified property
 
 #### Exceptions
 
 [ArgumentException](https://docs.microsoft.com/en-us/dotnet/api/system.argumentexception)<br>
+Thrown when the specified property is not found
+
+### **GetPropertyValue(Type, Object, String, Boolean, Type&)**
+
+Gets the value of a property from an object using reflection and returns the property type.
+ Supports nested property access using dot notation (e.g., "Property.SubProperty").
+ Supports indexed property access using square bracket notation (e.g., "Property[index]" or "Property[key]").
+
+```csharp
+public static object GetPropertyValue(Type type, object data, string name, bool ignoreCase, Type& propertyType)
+```
+
+#### Parameters
+
+`type` [Type](https://docs.microsoft.com/en-us/dotnet/api/system.type)<br>
+The type of the object
+
+`data` [Object](https://docs.microsoft.com/en-us/dotnet/api/system.object)<br>
+The object to get the property value from
+
+`name` [String](https://docs.microsoft.com/en-us/dotnet/api/system.string)<br>
+The property name, which can include nested properties separated by dots and indexed properties with square brackets
+
+`ignoreCase` [Boolean](https://docs.microsoft.com/en-us/dotnet/api/system.boolean)<br>
+Whether to ignore case when matching property names
+
+`propertyType` [Type&](https://docs.microsoft.com/en-us/dotnet/api/system.type&)<br>
+When this method returns, contains the type of the final property accessed
+
+#### Returns
+
+[Object](https://docs.microsoft.com/en-us/dotnet/api/system.object)<br>
+The value of the property, or null if the object or any nested property is null
+
+#### Exceptions
+
+[ArgumentException](https://docs.microsoft.com/en-us/dotnet/api/system.argumentexception)<br>
+Thrown when the specified property is not found
 
 ### **SetPropertyValue(Type, Object, String, Object, Boolean)**
 
-set the property value of an object using reflection. Property name can be delimited using . to allow setting of nested object property value
+Sets the value of a property on an object using reflection.
+ Supports nested property access using dot notation (e.g., "Property.SubProperty").
 
 ```csharp
 public static void SetPropertyValue(Type type, object data, string propertyName, object value, bool ignoreCase)
@@ -496,18 +577,27 @@ public static void SetPropertyValue(Type type, object data, string propertyName,
 #### Parameters
 
 `type` [Type](https://docs.microsoft.com/en-us/dotnet/api/system.type)<br>
+The type of the object
 
 `data` [Object](https://docs.microsoft.com/en-us/dotnet/api/system.object)<br>
+The object to set the property value on
 
 `propertyName` [String](https://docs.microsoft.com/en-us/dotnet/api/system.string)<br>
+The property name, which can include nested properties separated by dots
 
 `value` [Object](https://docs.microsoft.com/en-us/dotnet/api/system.object)<br>
+The value to set
 
 `ignoreCase` [Boolean](https://docs.microsoft.com/en-us/dotnet/api/system.boolean)<br>
+Whether to ignore case when matching property names
 
 #### Exceptions
 
 [ArgumentException](https://docs.microsoft.com/en-us/dotnet/api/system.argumentexception)<br>
+Thrown when the specified property is not found or doesn't have appropriate getter/setter
+
+[InvalidOperationException](https://docs.microsoft.com/en-us/dotnet/api/system.invalidoperationexception)<br>
+Thrown when attempting to set a property on a null object
 
 ---
 

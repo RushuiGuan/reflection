@@ -307,36 +307,16 @@ namespace Albatross.Reflection {
 		/// <summary>
 		/// Gets the value of a property from an object using reflection.
 		/// Supports nested property access using dot notation (e.g., "Property.SubProperty").
+		/// Supports indexed property access using square bracket notation (e.g., "Property[index]" or "Property[key]").
 		/// </summary>
 		/// <param name="type">The type of the object</param>
 		/// <param name="data">The object to get the property value from</param>
-		/// <param name="name">The property name, which can include nested properties separated by dots</param>
+		/// <param name="name">The property name, which can include nested properties separated by dots and indexed properties with square brackets</param>
 		/// <param name="ignoreCase">Whether to ignore case when matching property names</param>
 		/// <returns>The value of the property, or null if the object or any nested property is null</returns>
 		/// <exception cref="ArgumentException">Thrown when the specified property is not found</exception>
-		public static object? GetPropertyValue(this Type type, object? data, string name, bool ignoreCase) {
-			if (data == null) { return null; }
-			var bindingFlag = BindingFlags.Instance | BindingFlags.Public | BindingFlags.GetProperty;
-			if (ignoreCase) {
-				bindingFlag = bindingFlag | BindingFlags.IgnoreCase;
-			}
-			var index = name.IndexOf('.');
-			if (index == -1) {
-				var property = type.GetProperty(name, bindingFlag) ?? throw new ArgumentException($"Property {name} is not found in type {type.Name}");
-				return property.GetValue(data);
-			} else {
-				var firstProperty = name.Substring(0, index);
-				var property = type.GetProperty(firstProperty, bindingFlag) ?? throw new ArgumentException($"Property {name} is not found in type {type.Name}");
-				var value = property.GetValue(data);
-				if (value != null) {
-					var remainingProperty = name.Substring(index + 1);
-					// use value.GetType() instead of property.PropertyType because property.PropertyType may be a base class of value
-					return GetPropertyValue(value.GetType(), value, remainingProperty, ignoreCase);
-				} else {
-					return null;
-				}
-			}
-		}
+		public static object? GetPropertyValue(this Type type, object data, string name, bool ignoreCase)
+			=> GetPropertyValue(type, data, name, ignoreCase, out _);
 
 		/// <summary>
 		/// Gets the Type of a property using reflection.
@@ -364,28 +344,133 @@ namespace Albatross.Reflection {
 			}
 		}
 
+		/// <summary>
+		/// Applies an indexer to an object and returns the indexed value and its type.
+		/// </summary>
+		/// <param name="obj">The object to apply the indexer to</param>
+		/// <param name="indexString">The index as a string</param>
+		/// <param name="bindingFlag">The binding flags to use for reflection</param>
+		/// <param name="resultType">The type of the result</param>
+		/// <returns>The indexed value</returns>
+		private static object? GetIndexValue(object obj, string indexString, BindingFlags bindingFlag, out Type resultType) {
+			var objType = obj.GetType();
+
+			// Handle arrays specially
+			if (objType.IsArray) {
+				if (!int.TryParse(indexString, out var arrayIndex)) {
+					throw new ArgumentException($"Array index must be an integer, got '{indexString}'");
+				}
+				var array = (Array)obj;
+				if (arrayIndex < 0 || arrayIndex >= array.Length) {
+					throw new IndexOutOfRangeException($"Array index {arrayIndex} is out of range for array of length {array.Length}");
+				}
+				resultType = objType.GetElementType() ?? typeof(object);
+				return array.GetValue(arrayIndex);
+			} else {
+				// Try to get indexed property (this[...])
+				var indexerProperty = objType.GetProperty("Item", bindingFlag);
+				if (indexerProperty != null) {
+					var indexerParams = indexerProperty.GetIndexParameters();
+					if (indexerParams.Length == 1) {
+						var paramType = indexerParams[0].ParameterType;
+						object indexValue;
+
+						if (paramType == typeof(int)) {
+							if (!int.TryParse(indexString, out var intIndex)) {
+								throw new ArgumentException($"Cannot convert '{indexString}' to int for indexer access");
+							}
+							indexValue = intIndex;
+						} else if (paramType == typeof(string)) {
+							indexValue = indexString;
+						} else {
+							// Try to convert the index string to the required parameter type
+							try {
+								indexValue = Convert.ChangeType(indexString, paramType);
+							} catch {
+								throw new ArgumentException($"Cannot convert '{indexString}' to {paramType.Name} for indexer access");
+							}
+						}
+
+						resultType = indexerProperty.PropertyType;
+						return indexerProperty.GetValue(obj, new[] { indexValue });
+					}
+				}
+
+				throw new ArgumentException($"Object of type {objType.Name} does not support indexer access");
+			}
+		}
+
+		/// <summary>
+		/// Gets the value of a property from an object using reflection and returns the property type.
+		/// Supports nested property access using dot notation (e.g., "Property.SubProperty").
+		/// Supports indexed property access using square bracket notation (e.g., "Property[index]" or "Property[key]").
+		/// </summary>
+		/// <param name="type">The type of the object</param>
+		/// <param name="data">The object to get the property value from</param>
+		/// <param name="name">The property name, which can include nested properties separated by dots and indexed properties with square brackets</param>
+		/// <param name="ignoreCase">Whether to ignore case when matching property names</param>
+		/// <param name="propertyType">When this method returns, contains the type of the final property accessed</param>
+		/// <returns>The value of the property, or null if the object or any nested property is null</returns>
+		/// <exception cref="ArgumentException">Thrown when the specified property is not found</exception>
 		public static object? GetPropertyValue(this Type type, object data, string name, bool ignoreCase, out Type propertyType) {
 			var bindingFlag = BindingFlags.Instance | BindingFlags.Public | BindingFlags.GetProperty;
-			if (ignoreCase) {
-				bindingFlag = bindingFlag | BindingFlags.IgnoreCase;
-			}
-			var index = name.IndexOf('.');
-			if (index == -1) {
+			if (ignoreCase) { bindingFlag = bindingFlag | BindingFlags.IgnoreCase; }
+
+			var dotIndex = name.IndexOf('.');
+			if (dotIndex == 0) { throw new ArgumentException($"Property name cannot start with a dot"); }
+			var bracketIndex = name.IndexOf('[');
+			if (dotIndex == -1 && bracketIndex == -1) {
+				// Simple property access without nesting or indexing
 				var property = type.GetProperty(name, bindingFlag) ?? throw new ArgumentException($"Property {name} is not found in type {type.Name}");
 				propertyType = property.PropertyType;
 				return property.GetValue(data);
-			} else {
-				var firstProperty = name.Substring(0, index);
+			} else if (bracketIndex == -1 || dotIndex != -1 && dotIndex < bracketIndex) {
+				// Dot comes before bracket, handle as nested property first
+				var firstProperty = name.Substring(0, dotIndex);
 				var property = type.GetProperty(firstProperty, bindingFlag) ?? throw new ArgumentException($"Property {name} is not found in type {type.Name}");
 				var value = property.GetValue(data);
-				if (value != null) {
-					var remainingProperty = name.Substring(index + 1);
-					// use value.GetType() instead of property.PropertyType because property.PropertyType may be a base class of value
-					return GetPropertyValue(value.GetType(), value, remainingProperty, ignoreCase, out propertyType);
-				} else {
+				if (value == null) {
 					propertyType = property.PropertyType;
 					return null;
+				} else {
+					var remainingProperty = name.Substring(dotIndex + 1);
+					return GetPropertyValue(value.GetType(), value, remainingProperty, ignoreCase, out propertyType);
 				}
+			} else if (bracketIndex > 0) {
+				var firstProperty = name.Substring(0, bracketIndex);
+				var property = type.GetProperty(firstProperty, bindingFlag) ?? throw new ArgumentException($"Property {firstProperty} is not found in type {type.Name}");
+				var value = property.GetValue(data);
+				if (value == null) {
+					propertyType = property.PropertyType;
+					return null;
+				} else {
+					var remainingProperty = name.Substring(bracketIndex);
+					// use value.GetType() instead of property.PropertyType because property.PropertyType may be a base class of value
+					return GetPropertyValue(value.GetType(), value, remainingProperty, ignoreCase, out propertyType);
+				}
+			} else if (bracketIndex == 0) {
+				var closeBracketIndex = name.IndexOf(']', bracketIndex);
+				if (closeBracketIndex == -1) { throw new ArgumentException($"Missing closing bracket in property name"); }
+				var indexString = name.Substring(1, closeBracketIndex - 1);
+
+				// Apply the indexer to the current value
+				var value = GetIndexValue(data, indexString, bindingFlag, out var valueType);
+				if (value == null) {
+					propertyType = valueType;
+					return null;
+				}
+				if (closeBracketIndex + 1 == name.Length) {
+					propertyType = valueType;
+					return value;
+				} else {
+					var remainingProperty = name.Substring(closeBracketIndex + 1);
+					if (remainingProperty.StartsWith('.')) {
+						remainingProperty = remainingProperty.Substring(1);
+					}
+					return GetPropertyValue(value.GetType(), value, remainingProperty, ignoreCase, out propertyType);
+				}
+			} else {
+				throw new ArgumentException($"Invalid property name format: {name}");
 			}
 		}
 

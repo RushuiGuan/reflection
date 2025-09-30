@@ -6,6 +6,7 @@ A powerful .NET Standard 2.1 utility library that simplifies reflection operatio
 
 ## Features
 
+- **Enhanced Property Access with Indexer Support**: Access properties with dot notation AND indexer support for arrays, dictionaries, and collections
 - **Expression-based Property Access**: Compile-time safe property operations using strongly-typed lambda expressions
 - **Type Inspection Utilities**: Comprehensive type checking for nullable types, collections, tasks, and generics
 - **Assembly Type Discovery**: Find and filter types within assemblies with powerful search capabilities
@@ -50,6 +51,15 @@ public class Person
     public string Name { get; set; }
     public int? Age { get; set; }
     public DateTime CreatedDate { get; set; }
+    public Address[] Addresses { get; set; }
+    public Dictionary<string, string> Properties { get; set; }
+}
+
+public class Address
+{
+    public string Street { get; set; }
+    public string City { get; set; }
+    public int ZipCode { get; set; }
 }
 
 // Get PropertyInfo using expression
@@ -57,14 +67,88 @@ var nameProperty = ExpressionExtensions.GetPropertyInfo<Person>(p => p.Name);
 Console.WriteLine(nameProperty.Name); // Output: Name
 
 // Get property value using reflection utilities
-var person = new Person { Name = "John", Age = 25 };
+var person = new Person { 
+    Name = "John", 
+    Age = 25,
+    Addresses = new[] { 
+        new Address { Street = "123 Main St", City = "New York", ZipCode = 10001 },
+        new Address { Street = "456 Oak Ave", City = "Boston", ZipCode = 02101 }
+    },
+    Properties = new Dictionary<string, string> { ["Role"] = "Developer", ["Department"] = "IT" }
+};
+
+// Basic property access
 var nameValue = typeof(Person).GetPropertyValue(person, "Name", false);
 Console.WriteLine(nameValue); // Output: John
+
+// Array indexer access
+var firstAddress = typeof(Person).GetPropertyValue(person, "Addresses[0].Street", false);
+Console.WriteLine(firstAddress); // Output: 123 Main St
+
+// Dictionary indexer access
+var role = typeof(Person).GetPropertyValue(person, "Properties[Role]", false);
+Console.WriteLine(role); // Output: Developer
+
+// Complex nested access
+var firstZipCode = typeof(Person).GetPropertyValue(person, "Addresses[0].ZipCode", false);
+Console.WriteLine(firstZipCode); // Output: 10001
 
 // Create predicate expressions
 var predicate = ExpressionExtensions.GetPredicate<Person>("Name", "John");
 // Results in: person => person.Name == "John"
 ```
+
+### Advanced Property Access with Indexers
+
+The `GetPropertyValue` method now supports comprehensive indexer notation for accessing elements in arrays, dictionaries, lists, and other indexed collections:
+
+```csharp
+using Albatross.Reflection;
+
+public class DataContainer
+{
+    public string[] Names { get; set; } = new[] { "Alice", "Bob", "Charlie" };
+    public Dictionary<string, int> Scores { get; set; } = new() { ["Alice"] = 95, ["Bob"] = 87 };
+    public List<Person> People { get; set; } = new();
+    public Dictionary<string, Person[]> Teams { get; set; } = new();
+}
+
+var container = new DataContainer();
+var type = typeof(DataContainer);
+
+// Array access
+var firstName = type.GetPropertyValue(container, "Names[0]", false);
+Console.WriteLine(firstName); // Output: Alice
+
+// Dictionary access
+var aliceScore = type.GetPropertyValue(container, "Scores[Alice]", false);
+Console.WriteLine(aliceScore); // Output: 95
+
+// Nested object property access through indexer
+var personName = type.GetPropertyValue(container, "People[0].Name", false);
+
+// Complex nested indexer chains
+var teamLeaderCity = type.GetPropertyValue(container, "Teams[Development][0].Addresses[0].City", false);
+
+// Direct indexer access (when working with indexed objects directly)
+var arrayElement = type.GetPropertyValue(someArray, "[2]", false);
+
+// String property access through indexer
+var nameLength = type.GetPropertyValue(container, "Names[0].Length", false);
+Console.WriteLine(nameLength); // Output: 5 (length of "Alice")
+
+// Get both value and type information
+var cityValue = type.GetPropertyValue(container, "People[0].Addresses[0].City", false, out Type cityType);
+Console.WriteLine($"Value: {cityValue}, Type: {cityType.Name}"); // Type: String
+```
+
+**Supported Indexer Patterns:**
+- `Property[index]` - Array/List access with integer index
+- `Property[key]` - Dictionary access with string or typed keys
+- `Property[index].SubProperty` - Property access on indexed elements
+- `Property[key].SubProperty.NestedProperty` - Deep nested access
+- `Property1[key1][index2].Property2` - Consecutive indexers
+- `[index]` - Direct indexer access on the root object
 
 ### Type Inspection and Utilities
 
@@ -78,7 +162,7 @@ if (typeof(int?).GetNullableValueType(out Type valueType))
 }
 
 // Check collection types
-if (typeof(List<string>).GetCollectionItemType(out Type itemType))
+if (typeof(List<string>).TryGetGenericCollectionElementType(out Type itemType))
 {
     Console.WriteLine(itemType); // Output: System.String
 }
@@ -110,17 +194,31 @@ var person = new Person
 { 
     Name = "John", 
     Age = 30,
-    Addresses = new[] { "123 Main St", "456 Oak Ave" }
+    Addresses = new[] { 
+        new Address { Street = "123 Main St", City = "New York" },
+        new Address { Street = "456 Oak Ave", City = "Boston" }
+    },
+    Properties = new Dictionary<string, string> { ["Role"] = "Developer" }
 };
 
 var properties = new Dictionary<string, object>();
 person.ToDictionary(properties);
 
-// Results in flattened structure:
+// Results in flattened structure that can be accessed using GetPropertyValue:
 // "Name" => "John"
 // "Age" => 30
-// "Addresses[0]" => "123 Main St"
-// "Addresses[1]" => "456 Oak Ave"
+// "Addresses[0].Street" => "123 Main St"
+// "Addresses[0].City" => "New York"
+// "Addresses[1].Street" => "456 Oak Ave"
+// "Addresses[1].City" => "Boston"
+// "Properties[Role]" => "Developer"
+
+// You can then use these keys with GetPropertyValue:
+foreach (var key in properties.Keys)
+{
+    var value = typeof(Person).GetPropertyValue(person, key, false);
+    Console.WriteLine($"{key} = {value}");
+}
 ```
 
 ## Project Structure
@@ -232,6 +330,37 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
+
+## Recent Updates
+
+### ✨ Enhanced Indexer Support (Latest Version)
+
+**New in this version**: The `GetPropertyValue` method now supports comprehensive indexer notation:
+
+```csharp
+// 🆕 Array indexer support
+var item = type.GetPropertyValue(obj, "Items[0]", false);
+
+// 🆕 Dictionary indexer support  
+var value = type.GetPropertyValue(obj, "Dictionary[key]", false);
+
+// 🆕 Property access on indexed elements
+var street = type.GetPropertyValue(obj, "Addresses[0].Street", false);
+
+// 🆕 Consecutive indexers
+var leader = type.GetPropertyValue(obj, "Teams[Development][0].Name", false);
+
+// 🆕 Direct indexer access
+var element = type.GetPropertyValue(array, "[2]", false);
+```
+
+**Key improvements:**
+- ✅ Support for arrays, dictionaries, lists, and custom indexers
+- ✅ Nested property access through indexed elements  
+- ✅ Consecutive indexer chains (e.g., `[key1][index2]`)
+- ✅ Type-safe index parameter conversion
+- ✅ Comprehensive error handling with clear messages
+- ✅ Full backward compatibility maintained
 
 ## Support
 

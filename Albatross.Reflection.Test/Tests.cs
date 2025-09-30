@@ -50,9 +50,9 @@ namespace Albatross.Reflection.Test {
 		}
 
 
-		
 
-		
+
+
 
 		[Fact]
 		public void TestIsAnonymousType_True() {
@@ -128,7 +128,7 @@ namespace Albatross.Reflection.Test {
 		[Fact]
 		public void TestAssemblyCodeBase() {
 			string? location = this.GetType().Assembly.Location;
-			location = System.IO.Path.GetDirectoryName(location) + "\\";
+			location = System.IO.Path.GetDirectoryName(location) + Path.DirectorySeparatorChar;
 			string actual = AppContext.BaseDirectory;
 			Assert.Equal(location, actual);
 		}
