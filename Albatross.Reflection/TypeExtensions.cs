@@ -364,6 +364,31 @@ namespace Albatross.Reflection {
 			}
 		}
 
+		public static object? GetPropertyValue(this Type type, object data, string name, bool ignoreCase, out Type propertyType) {
+			var bindingFlag = BindingFlags.Instance | BindingFlags.Public | BindingFlags.GetProperty;
+			if (ignoreCase) {
+				bindingFlag = bindingFlag | BindingFlags.IgnoreCase;
+			}
+			var index = name.IndexOf('.');
+			if (index == -1) {
+				var property = type.GetProperty(name, bindingFlag) ?? throw new ArgumentException($"Property {name} is not found in type {type.Name}");
+				propertyType = property.PropertyType;
+				return property.GetValue(data);
+			} else {
+				var firstProperty = name.Substring(0, index);
+				var property = type.GetProperty(firstProperty, bindingFlag) ?? throw new ArgumentException($"Property {name} is not found in type {type.Name}");
+				var value = property.GetValue(data);
+				if (value != null) {
+					var remainingProperty = name.Substring(index + 1);
+					// use value.GetType() instead of property.PropertyType because property.PropertyType may be a base class of value
+					return GetPropertyValue(value.GetType(), value, remainingProperty, ignoreCase, out propertyType);
+				} else {
+					propertyType = property.PropertyType;
+					return null;
+				}
+			}
+		}
+
 		/// <summary>
 		/// Sets the value of a property on an object using reflection.
 		/// Supports nested property access using dot notation (e.g., "Property.SubProperty").
