@@ -188,6 +188,7 @@ namespace Albatross.Reflection.Test {
         }
 
         [Theory]
+        [InlineData("People[0]", typeof(PersonClass))]
         [InlineData("People[0].Name", typeof(string))]
         [InlineData("People[0].Age", typeof(int))]
         [InlineData("People[0].Address.ZipCode", typeof(int))]

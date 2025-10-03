@@ -350,9 +350,9 @@ namespace Albatross.Reflection {
 		/// <param name="obj">The object to apply the indexer to</param>
 		/// <param name="indexString">The index as a string</param>
 		/// <param name="bindingFlag">The binding flags to use for reflection</param>
-		/// <param name="resultType">The type of the result</param>
+		/// <param name="valueType">The type of the result</param>
 		/// <returns>The indexed value</returns>
-		private static object? GetIndexValue(object obj, string indexString, BindingFlags bindingFlag, out Type resultType) {
+		private static object? GetIndexValue(object obj, string indexString, BindingFlags bindingFlag, out Type valueType) {
 			var objType = obj.GetType();
 
 			// Handle arrays specially
@@ -364,7 +364,7 @@ namespace Albatross.Reflection {
 				if (arrayIndex < 0 || arrayIndex >= array.Length) {
 					throw new IndexOutOfRangeException($"Array index {arrayIndex} is out of range for array of length {array.Length}");
 				}
-				resultType = objType.GetElementType() ?? typeof(object);
+				valueType = objType.GetElementType() ?? typeof(object);
 				return array.GetValue(arrayIndex);
 			} else {
 				// Try to get indexed property (this[...])
@@ -391,7 +391,7 @@ namespace Albatross.Reflection {
 							}
 						}
 
-						resultType = indexerProperty.PropertyType;
+						valueType = indexerProperty.PropertyType;
 						return indexerProperty.GetValue(obj, new[] { indexValue });
 					}
 				}
@@ -445,7 +445,6 @@ namespace Albatross.Reflection {
 					return null;
 				} else {
 					var remainingProperty = name.Substring(bracketIndex);
-					// use value.GetType() instead of property.PropertyType because property.PropertyType may be a base class of value
 					return GetPropertyValue(value.GetType(), value, remainingProperty, ignoreCase, out propertyType);
 				}
 			} else if (bracketIndex == 0) {

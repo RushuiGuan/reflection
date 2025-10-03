@@ -10,6 +10,17 @@ namespace Albatross.Reflection.Test {
                 ["john"] = new PersonClass { Name = "John", Age = 30 },
                 ["jane"] = new PersonClass { Name = "Jane", Age = 25 }
             };
+
+            public Color? Color { get; set; }
+        }
+
+        public record class Red : Color {
+	        public Red() :base("red") { }
+        }
+
+        public record class Color {
+	        public Color(string name) { Name = name; }
+	        public  string Name { get; } 
         }
 
         public class PersonClass {
@@ -70,7 +81,9 @@ namespace Albatross.Reflection.Test {
 
         [Fact]
         public void TestOutParameterType() {
-            var obj = new TestClass();
+	        var obj = new TestClass() {
+		        Color = new Red(),
+	        };
             var type = typeof(TestClass);
 
             // Test that the out parameter correctly returns the type
@@ -81,6 +94,11 @@ namespace Albatross.Reflection.Test {
             var result2 = type.GetPropertyValue(obj, "Items[0]", false, out Type resultType2);
             Assert.Equal("test1", result2);
             Assert.Equal(typeof(string), resultType2);
+            
+            var result3 = type.GetPropertyValue(obj, "Color", false, out Type resultType3);
+            Assert.Equal(new Red(), result3);
+            Assert.Equal(typeof(Color), resultType3);
+            
         }
     }
 }
