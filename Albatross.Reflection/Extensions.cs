@@ -23,7 +23,7 @@ namespace Albatross.Reflection {
 			return sb.ToString();
 		}
 
-		internal static void RecursivelyAddProperties(object? value, string? path, int? index, Dictionary<string, object> result) {
+		internal static void RecursivelyAddProperties(object? value, string? path, int? index, Dictionary<string, object> result, HashSet<object> objects) {
 			if (value == null) {
 				return;
 			} else if (value is string) {
@@ -32,17 +32,23 @@ namespace Albatross.Reflection {
 				result.Add(BuildPropertyPath(path, index, null), value);
 			} else {
 				var type = value.GetType();
+				// circular reference check
+				if (objects.Contains(value)) {
+					return;
+				} else {
+					objects.Add(value);
+				}
 				if (type.IsArray || typeof(IEnumerable).IsAssignableFrom(type)) {
 					var newPath = BuildPropertyPath(path, index, null);
 					int newIndex = 0;
 					foreach (var item in (IEnumerable)value) {
-						RecursivelyAddProperties(item, newPath, newIndex, result);
+						RecursivelyAddProperties(item, newPath, newIndex, result, objects);
 						newIndex++;
 					}
 				} else {
 					foreach (var property in value.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance)) {
 						var propertyValue = property.GetValue(value);
-						RecursivelyAddProperties(propertyValue, BuildPropertyPath(path, index, property.Name), null, result);
+						RecursivelyAddProperties(propertyValue, BuildPropertyPath(path, index, property.Name), null, result, objects);
 					}
 				}
 			}
@@ -59,7 +65,11 @@ namespace Albatross.Reflection {
 		/// Complex objects have their public instance properties enumerated recursively.
 		/// </remarks>
 		public static void ToDictionary(this object? value, Dictionary<string, object> result) {
-			RecursivelyAddProperties(value, null, null, result);
+			HashSet<object> visited = new HashSet<object>();
+			if (value != null) {
+				visited.Add(value);
+			}
+			RecursivelyAddProperties(value, null, null, result, visited);
 		}
 	}
 }
