@@ -23,15 +23,22 @@ namespace Albatross.Reflection.Test {
 		public List<string> ListA { get; set; } = new List<string>();
 		public string[] ArrayB { get; set; } = Array.Empty<string>();
 	}
+
+	public class ClassC {
+		public ClassD? D { get; set; }
+	}
+	public class ClassD {
+		public ClassC? C { get; set; }
+	}
 	public class TestExtensions {
 		[Fact]
 		public void TestSimpleCase() {
 			var dict = new Dictionary<string, object>();
 			int intValue = 1;
 			string textValue = "test";
-			Extensions.RecursivelyAddProperties(intValue, "a", null, dict);
-			Extensions.RecursivelyAddProperties(intValue, "a", 1, dict);
-			Extensions.RecursivelyAddProperties(textValue, "t", null, dict);
+			Extensions.RecursivelyAddProperties(intValue, "a", null, dict, new HashSet<object>());
+			Extensions.RecursivelyAddProperties(intValue, "a", 1, dict, new HashSet<object>());
+			Extensions.RecursivelyAddProperties(textValue, "t", null, dict, new HashSet<object>());
 			Assert.Collection(dict,
 				x => {
 					Assert.Equal("a", x.Key);
@@ -123,7 +130,7 @@ namespace Albatross.Reflection.Test {
 		[Fact]
 		public void TestRootArrayEnumeration() {
 			var dict = new Dictionary<string, object>();
-			var array = new string[] { 
+			var array = new string[] {
 				"a", "b", "c",
 			};
 			Extensions.ToDictionary(array, dict);
@@ -138,6 +145,16 @@ namespace Albatross.Reflection.Test {
 					Assert.Equal("[2]", x.Key);
 					Assert.Equal("c", x.Value);
 				});
+		}
+
+		[Fact]
+		public void TestCircularReference() {
+			var c = new ClassC();
+			var d = new ClassD();
+			c.D = d;
+			d.C = c;
+			var dict = new Dictionary<string, object>();
+			Extensions.ToDictionary(c, dict);
 		}
 	}
 }

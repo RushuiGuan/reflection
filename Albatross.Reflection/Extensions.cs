@@ -66,9 +66,6 @@ namespace Albatross.Reflection {
 		/// </remarks>
 		public static void ToDictionary(this object? value, Dictionary<string, object> result) {
 			HashSet<object> visited = new HashSet<object>();
-			if (value != null) {
-				visited.Add(value);
-			}
 			RecursivelyAddProperties(value, null, null, result, visited);
 		}
 	}
