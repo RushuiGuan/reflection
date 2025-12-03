@@ -26,6 +26,6 @@
 		</None>
 	</ItemGroup>
 	<ItemGroup Condition="$(TargetFramework) == 'netstandard2.0'">
-	  <PackageReference Include="Albatross.CodeAnalysis.NetStandard2Helper" Version="8.0.0-30.main" PrivateAssets="All" />
+		<PackageReference Include="Albatross.CodeAnalysis.NetStandard2Helper" Version="8.0.0-30.main" PrivateAssets="All" />
 	</ItemGroup>
 </Project>
