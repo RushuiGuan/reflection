@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Diagnostics.CodeAnalysis;
 using Xunit;
 
 namespace Albatross.Reflection.Test {
@@ -15,6 +12,11 @@ namespace Albatross.Reflection.Test {
 			object value = MyEnum.a;
 			Assert.Equal("a", value.ToString());
 			Assert.Equal("a", Enum.GetName(typeof(MyEnum), value));
+		}
+		
+		public bool TestConflict([NotNullWhen(true)] out string? message) {
+			message = null;
+			return false;
 		}
 	}
 }
