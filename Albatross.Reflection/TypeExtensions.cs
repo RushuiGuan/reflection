@@ -463,7 +463,7 @@ namespace Albatross.Reflection {
 					return value;
 				} else {
 					var remainingProperty = name.Substring(closeBracketIndex + 1);
-					if (remainingProperty.StartsWith('.')) {
+					if (remainingProperty.StartsWith(".")) {
 						remainingProperty = remainingProperty.Substring(1);
 					}
 					return GetPropertyValue(value.GetType(), value, remainingProperty, ignoreCase, out propertyType);
