@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFramework>netstandard2.0</TargetFramework>
+		<TargetFrameworks>netstandard2.0;net8.0</TargetFrameworks>
 		<LangVersion>Latest</LangVersion>
 		<Nullable>enable</Nullable>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
@@ -25,7 +25,7 @@
 			<PackagePath>\</PackagePath>
 		</None>
 	</ItemGroup>
-	<ItemGroup Condition="$(TargetFramework) == 'netstandard2.0'">
-		<PackageReference Include="Albatross.CodeAnalysis.NetStandard2Helper" Version="8.0.0-31.main" PrivateAssets="All" />
+	<ItemGroup>
+	  <PackageReference Condition="'$(TargetFramework)' == 'netstandard2.0'" Include="Albatross.CodeAnalysis.Polyfill" Version="8.0.0-40.main" />
 	</ItemGroup>
 </Project>
